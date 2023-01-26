@@ -42,6 +42,7 @@ export default class{
         const material = this.createMaterial()
         const position = BABYLON.MeshBuilder.CreateSphere('sphere', {diameter: radius * 2, segments: 64}, scene).getVerticesData('position')
         const len = position.length / 3
+        const matrices = new Float32Array(len * 16)
 
         this.plane = new Plane({
             geometryOpt: {
@@ -59,12 +60,11 @@ export default class{
             const y = position[idx + 1]
             const z = position[idx + 2]
 
-            const instance = this.plane.get().createInstance('plane' + i)
-
-            instance.position.x = x
-            instance.position.y = y
-            instance.position.z = z
+            const matrix = BABYLON.Matrix.Translation(x, y, z)
+            matrix.copyToArray(matrices, 16 * i)
         }
+
+        this.plane.get().thinInstanceSetBuffer('matrix', matrices, 16)
 
     }
     createMaterial(){
