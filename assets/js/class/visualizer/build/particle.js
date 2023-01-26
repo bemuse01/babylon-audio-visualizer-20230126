@@ -65,7 +65,6 @@ export default class{
         }
 
         this.plane.get().thinInstanceSetBuffer('matrix', matrices, 16)
-
     }
     createMaterial(){
         // const shaderName = GetShaderName()
