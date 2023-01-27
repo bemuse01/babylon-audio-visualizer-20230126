@@ -24,9 +24,10 @@ export default class{
         this.audioBoost = audioBoost
         this.rtt =  rtt
 
+        this.radiusBoost = 1.5
         this.boost = 25
-        this.pointSize = 1.3
-        this.tessellation = 4
+        this.pointSize = 1.35
+        this.seg = 100
         this.audioData = null
         this.direction = [1, -1]
         this.play = false
@@ -43,10 +44,10 @@ export default class{
 
     // create
     create(){
-        const {scene, engine, tessellation, radius} = this
+        const {scene, engine, seg, radius, radiusBoost} = this
 
         const material = this.createMaterial()
-        const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 100, 100, 100).getAttribute('position').array
+        const position = new BoxGeometry(radius * radiusBoost, radius * radiusBoost, radius * radiusBoost, seg, seg, seg).getAttribute('position').array
         // const position = new SphereGeometry(radius, 150, 150).getAttribute('position').array
         const len = position.length / 3
 

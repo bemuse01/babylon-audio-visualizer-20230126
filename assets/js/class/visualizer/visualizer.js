@@ -218,6 +218,7 @@ export default class{
         this.aspect = this.engine.getAspectRatio(this.camera)
         this.vw = Method.getVisibleWidth(this.camera, this.aspect, 0)
         this.vh = Method.getVisibleHeight(this.camera, 0)
+    	this.vls.mesh.scaling = new BABYLON.Vector3(this.vw, this.vh, 1)
     }
     resizeComps(){
         this.comps.forEach(comp => {
