@@ -102,7 +102,7 @@ export default class{
     }
     createPostProcess(){
         // this.createGlow()
-        // this.createVLS()
+        this.createVLS()
     }
     createGlow(){
         this.glow = new BABYLON.GlowLayer('glow', this.scene, 
@@ -137,6 +137,7 @@ export default class{
         )
         this.vls.mesh.material.diffuseTexture = this.rtt
         this.vls.mesh.material.diffuseTexture.hasAlpha = true
+        // this.vls.mesh.material.alphaMode = BABYLON.Engine.ALPHA_ADD
         this.vls.mesh.position = new BABYLON.Vector3(0, 0, 0)
     	this.vls.mesh.scaling = new BABYLON.Vector3(this.vw, this.vh, 1)
         // console.log(this.vw, this.vh)

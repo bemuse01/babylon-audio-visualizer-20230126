@@ -2,7 +2,7 @@ import Plane from '../../objects/plane.js'
 import Sphere from '../../objects/sphere.js'
 import Box from '../../objects/box.js'
 import GetShaderName from '../shader/particle.shader.js'
-import {BoxGeometry} from '../../../lib/three.module.js'
+import {BoxGeometry, SphereGeometry} from '../../../lib/three.module.js'
 
 export default class{
     constructor({
@@ -24,8 +24,8 @@ export default class{
         this.audioBoost = audioBoost
         this.rtt =  rtt
 
-        this.boost = 20
-        this.pointSize = 2.0
+        this.boost = 25
+        this.pointSize = 1.3
         this.tessellation = 4
         this.audioData = null
         this.direction = [1, -1]
@@ -47,6 +47,7 @@ export default class{
 
         const material = this.createMaterial()
         const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 100, 100, 100).getAttribute('position').array
+        // const position = new SphereGeometry(radius, 150, 150).getAttribute('position').array
         const len = position.length / 3
 
         this.points = new BABYLON.PointsCloudSystem('pcs', 1, scene)
@@ -75,7 +76,11 @@ export default class{
             this.points.mesh.material = material
             this.points.mesh.material.pointsCloud = true
             this.play = true
+            // this.rtt.renderList.push(this.points.mesh)
+            this.scene.removeMesh(this.points.mesh)
+            this.rtt.renderList.push(this.points.mesh)
         })
+
     }
     createMaterial(){
         const shaderName = GetShaderName()
