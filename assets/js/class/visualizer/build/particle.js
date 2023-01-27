@@ -56,7 +56,7 @@ export default class{
 
         this.plane = new Box({
             geometryOpt: {
-                size: size * 1,
+                size: size * 2,
                 sideOrientation: BABYLON.Mesh.FRONTSIDE
             },
             scene,

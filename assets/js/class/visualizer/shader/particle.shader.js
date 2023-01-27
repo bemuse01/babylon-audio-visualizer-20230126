@@ -32,7 +32,7 @@ const getShaderName = () => {
         void main(){
             // float opacity = distance(vUv, vec2(0.5)) * 2.0;
 
-            gl_FragColor = vec4(uColor, 1.0);
+            gl_FragColor = vec4(uColor, 0.1);
         }
     `
     
