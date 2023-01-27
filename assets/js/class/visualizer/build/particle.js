@@ -24,11 +24,10 @@ export default class{
         this.audioBoost = audioBoost
         this.rtt =  rtt
 
-        this.boost = 15
-        this.iter = 2
-        this.size = 0.125
+        this.boost = 20
+        this.pointSize = 2.0
         this.tessellation = 4
-        this.audioDataAvg = null
+        this.audioData = null
         this.direction = [1, -1]
         this.play = false
 
@@ -44,7 +43,7 @@ export default class{
 
     // create
     create(){
-        const {scene, engine, size, tessellation, count, iter, radius} = this
+        const {scene, engine, tessellation, radius} = this
 
         const material = this.createMaterial()
         const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 100, 100, 100).getAttribute('position').array
@@ -75,6 +74,7 @@ export default class{
             this.points.setParticles()
             this.points.mesh.material = material
             this.points.mesh.material.pointsCloud = true
+            this.play = true
         })
     }
     createMaterial(){
@@ -87,7 +87,7 @@ export default class{
             },
             {
                 attributes: ['position', 'normal', 'uv'],
-                uniforms: ['world', 'worldView', "worldViewProjection", 'view', 'projection', 'viewProjection', 'uColor', 'uAudio', 'uTime', 'uBoost'],
+                uniforms: ['world', 'worldView', "worldViewProjection", 'view', 'projection', 'viewProjection', 'uColor', 'uAudio', 'uTime', 'uBoost', 'uPointSize'],
                 needAlphaBlending: true,
                 needAlphaTesting: true,
             }
@@ -95,6 +95,7 @@ export default class{
 
         material.setColor3('uColor', this.color)
         material.setFloat('uBoost', this.boost)
+        material.setFloat('uPointSize', this.pointSize)
 
         // const material = new BABYLON.StandardMaterial('material', this.scene)
         // material.emissiveColor = this.color
@@ -106,21 +107,27 @@ export default class{
     
 
     // animate
-    animate(audioDataAvg){
-        this.audioDataAvg = audioDataAvg
+    animate(audioData){
+        this.audioData = audioData
 
         this.render()
     }
     render(){
-        const {radius, count, iter, audioDataAvg} = this
+        const {audioData} = this
 
-        if(audioDataAvg === null) return
-
-        const material = this.points.mesh.material
-        const time = window.performance.now()
+        if(!this.play) return
 
         this.points.mesh.rotation.x += 0.01
         this.points.mesh.rotation.y += 0.01
+
+        if(!audioData) return
+
+        const len = audioData.length / 2
+        const half = [...audioData].slice(0, len)
+        const audioDataAvg = half.map(e => e / 255).reduce((x, y) => x + y) / len
+
+        const material = this.points.mesh.material
+        const time = window.performance.now()
 
         material.setFloat('uTime', time)
         material.setFloat('uAudio', audioDataAvg)

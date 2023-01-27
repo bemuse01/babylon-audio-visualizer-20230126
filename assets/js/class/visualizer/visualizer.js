@@ -158,10 +158,10 @@ export default class{
         this.scene.render()
     }
     animateComps(){
-        const {audioDataAvg} = this.audio
+        const {audioData} = this.audio
 
         this.comps.forEach(comp => {
-            if(comp.animate) comp.animate(audioDataAvg)
+            if(comp.animate) comp.animate(audioData)
         })
     }
     updateAudioData(){

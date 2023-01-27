@@ -12,6 +12,7 @@ const getShaderName = () => {
         uniform float uBoost;
         uniform float uTime;
         uniform float uAudio;
+        uniform float uPointSize;
 
         varying vec2 vUv;
 
@@ -27,7 +28,7 @@ const getShaderName = () => {
             nPosition += vec3(x, y, z);
 
             gl_Position = worldViewProjection * vec4(nPosition, 1.0);
-            gl_PointSize = 2.0;
+            gl_PointSize = uPointSize;
 
             vUv = uv;
         }
