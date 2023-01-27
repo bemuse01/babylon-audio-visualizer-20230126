@@ -1,5 +1,8 @@
 import Plane from '../../objects/plane.js'
+import Sphere from '../../objects/sphere.js'
+import Box from '../../objects/box.js'
 import GetShaderName from '../shader/particle.shader.js'
+import {BoxGeometry} from '../../../lib/three.module.js'
 
 export default class{
     constructor({
@@ -9,7 +12,8 @@ export default class{
         count,
         radius,
         color,
-        audioBoost
+        audioBoost,
+        rtt
     }){
         this.engine = engine
         this.scene = scene
@@ -18,6 +22,7 @@ export default class{
         this.radius = radius
         this.color = color
         this.audioBoost = audioBoost
+        this.rtt =  rtt
 
         this.iter = 2
         this.size = 0.125
@@ -40,18 +45,27 @@ export default class{
         const {scene, engine, size, tessellation, count, iter, radius} = this
 
         const material = this.createMaterial()
-        const position = BABYLON.MeshBuilder.CreateSphere('sphere', {diameter: radius * 2, segments: 64}, scene).getVerticesData('position')
+        // const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', {diameter: radius * 2, segments: 64}, scene)
+        // const position = [...sphere.getVerticesData('position')]
+        // this.scene.removeMesh(sphere)
+        // sphere.dispose()
+        const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 60, 60, 60).getAttribute('position').array
+
         const len = position.length / 3
         const matrices = new Float32Array(len * 16)
 
-        this.plane = new Plane({
+        this.plane = new Box({
             geometryOpt: {
-                size,
-                scene,
-                engine
-            }
+                size: size * 1,
+                sideOrientation: BABYLON.Mesh.FRONTSIDE
+            },
+            scene,
+            engine,
         })
-        this.plane.get().visible  = false
+        this.plane.setMaterial(material)
+
+        // this.scene.removeMesh(this.plang.get())
+        this.rtt.renderList.push(this.plane.get())
 
         for(let i = 0; i < len; i++){
             const idx = i * 3
@@ -67,88 +81,46 @@ export default class{
         this.plane.get().thinInstanceSetBuffer('matrix', matrices, 16)
     }
     createMaterial(){
-        // const shaderName = GetShaderName()
+        const shaderName = GetShaderName()
 
-        // const material = new BABYLON.ShaderMaterial('material', this.scene,
-        //     {
-        //         vertex: shaderName,
-        //         fragment: shaderName
-        //     },
-        //     {
-        //         attributes: ['position', 'uv'],
-        //         uniforms: ['worldViewProjection', 'uColor'],
-        //         needAlphaBlending: true,
-        //         needAlphaTesting: true,
-        //     }
-        // )
+        const material = new BABYLON.ShaderMaterial('material', this.scene,
+            {
+                vertex: shaderName,
+                fragment: shaderName
+            },
+            {
+                attributes: ['position', 'normal', 'uv'],
+                uniforms: ['world', 'worldView', "worldViewProjection", 'view', 'projection', 'viewProjection', 'uColor', 'cameraPosition'],
+                needAlphaBlending: true,
+                needAlphaTesting: true,
+            }
+        )
 
-        // material.setColor3('uColor', this.color)
+        material.setColor3('uColor', this.color)
+        material.setVector3('cameraPosition', this.camera.position)
 
-        const material = new BABYLON.StandardMaterial('material', this.scene)
-        material.emissiveColor = this.color
+        // const material = new BABYLON.StandardMaterial('material', this.scene)
+        // material.emissiveColor = this.color
         // material.alpha = 0.5
-        material.alphaMode = BABYLON.Engine.ALPHA_ADD
+        // material.alphaMode = BABYLON.Engine.ALPHA_ADD
 
         return material
     }
     
 
-    // set
-    setPosition(position){
-        const sps = this.particle.getSPS()
-        const len = position.length / 3
-
-        for(let i = 0; i < len; i++){
-            const idx = i * 3
-            const particle = sps.particles[i]
-
-            const x = position[idx + 0]
-            const y = position[idx + 1]
-            const z = position[idx + 2]
-
-            particle.position.x = x
-            particle.position.y = y
-            particle.position.z = z
-        }
-
-        sps.setParticles()
-    }
-
-
     // animate
     animate(audioData){
         this.audioData = audioData
 
-        // this.render()
+        this.render()
     }
     render(){
         const {radius, count, iter, audioBoost, audioData} = this
 
+        this.plane.get().rotation.x += 0.01
+        this.plane.get().rotation.y += 0.01
+        // this.plane.get().rotation.z += 0.01
+
         if(!audioData) return
-
-        const sps = this.particle.getSPS()
-
-        const degree = 360 / count
-        let n = 0
-
-        for(let j = 0; j < iter; j++){
-
-            const direction = this.direction[j]
-
-            for(let i = 0; i < count; i++){
-                const particle = sps.particles[n++]
-
-                const rad = radius + audioData[i] * audioBoost * direction
-                const deg = degree * i * RADIAN
-                const x = Math.cos(deg) * rad
-                const y = Math.sin(deg) * rad
-
-                particle.position.x = x
-                particle.position.y = y
-            }
-
-        }
-
-        sps.setParticles()
     }
 }

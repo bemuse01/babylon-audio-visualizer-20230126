@@ -16,6 +16,7 @@ export default class{
         this.rh = this.engine.getRenderHeight()
         this.vw = null
         this.vh = null
+        this.vlsSample = 100
         
         this.count = 120
         this.splineSmooth = 0.6
@@ -69,8 +70,8 @@ export default class{
     }
     createRenderObject(){
         this.scene = new BABYLON.Scene(this.engine)
-        this.scene.autoClear = false
-        // this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
+        // this.scene.autoClear = false
+        this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
 
         this.camera = new BABYLON.FreeCamera(this.cameraName, this.cameraPos, this.scene)
         this.camera.setTarget(BABYLON.Vector3.Zero())
@@ -79,9 +80,9 @@ export default class{
         this.vw = Method.getVisibleWidth(this.camera, this.aspect, 0)
         this.vh = Method.getVisibleHeight(this.camera, 0)
 
-        // this.rtt = new BABYLON.RenderTargetTexture(Method.uuidv4(), {width: this.rw, height: this.rh}, this.scene)
-        // this.rtt.samples = this.rttSamples
-        // this.scene.customRenderTargets.push(this.rtt)
+        this.rtt = new BABYLON.RenderTargetTexture('rtt', {width: this.rw, height: this.rh}, this.scene)
+        this.rtt.samples = 8
+        this.scene.customRenderTargets.push(this.rtt)
     }
     createObject(){
         for(const param of this.params){
@@ -93,14 +94,15 @@ export default class{
                     engine: this.engine, 
                     audio: this.audio, 
                     camera: this.camera,
-                    // rtt: this.rtt,
+                    rtt: this.rtt,
                     ...param
                 })
             )
         }
     }
     createPostProcess(){
-        this.createGlow()
+        // this.createGlow()
+        // this.createVLS()
     }
     createGlow(){
         this.glow = new BABYLON.GlowLayer('glow', this.scene, 
@@ -122,12 +124,29 @@ export default class{
         // )
         // this.glow2.intensity = 0.6
     }
+    createVLS(){
+        this.vls = new BABYLON.VolumetricLightScatteringPostProcess(
+            'vls1', 
+            1.0, 
+            this.camera, 
+            null,
+            this.vlsSample, 
+            BABYLON.Texture.BILINEAR_SAMPLINGMODE, 
+            this.engine, 
+            false
+        )
+        this.vls.mesh.material.diffuseTexture = this.rtt
+        this.vls.mesh.material.diffuseTexture.hasAlpha = true
+        this.vls.mesh.position = new BABYLON.Vector3(0, 0, 0)
+    	this.vls.mesh.scaling = new BABYLON.Vector3(this.vw, this.vh, 1)
+        // console.log(this.vw, this.vh)
+    }
 
 
     // render
     render(){
         this.engine.runRenderLoop(() => {
-            this.engine.clear(true, true, false)
+            // this.engine.clear(true, true, false)
             // this.engine.clear(new BABYLON.Color4(0, 0, 0, 0.1), true, false)
             
             this.renderScene()

@@ -4,16 +4,22 @@ const name = 'visualizerParticle'
 
 const getShaderName = () => {
     const vertex = `
+        #include<instancesDeclaration>
+
         attribute vec3 position;
         attribute vec2 uv;
         attribute float audio;
 
-        uniform mat4 worldViewProjection;
+        // uniform mat4 worldViewProjection;
+        uniform mat4 viewProjection;
+        uniform vec3 cameraPosition;
 
         varying vec2 vUv;
 
         void main(){
-            gl_Position = worldViewProjection * vec4(position, 1.0);
+            #include<instancesVertex>
+
+            gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
 
             vUv = uv;
         }
