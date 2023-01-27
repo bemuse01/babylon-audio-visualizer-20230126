@@ -80,6 +80,10 @@ export default class{
         // const half = [...this.audioData].slice(0, this.audioData.length)
         // this.audioDataAvg = half.map(e => e / 255).reduce((x, y) => x + y) / len
         // this.audioDataAvg = half[~~(half.length * 0.1)] / 255
+
+        const len = this.audioData.length / 2
+        const half = [...this.audioData].slice(0, len)
+        this.audioDataAvg = half.map(e => e / 255).reduce((x, y) => x + y) / len
     }
 
 

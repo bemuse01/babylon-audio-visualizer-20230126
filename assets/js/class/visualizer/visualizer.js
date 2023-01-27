@@ -150,7 +150,7 @@ export default class{
             // this.engine.clear(new BABYLON.Color4(0, 0, 0, 0.1), true, false)
             
             this.renderScene()
-            this.updateAudioData()
+            // this.updateAudioData()
             this.animateComps()
         })
     }
@@ -158,8 +158,10 @@ export default class{
         this.scene.render()
     }
     animateComps(){
+        const {audioDataAvg} = this.audio
+
         this.comps.forEach(comp => {
-            if(comp.animate) comp.animate(this.audioData)
+            if(comp.animate) comp.animate(audioDataAvg)
         })
     }
     updateAudioData(){

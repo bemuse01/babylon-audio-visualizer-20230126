@@ -1,25 +1,33 @@
-// import ShaderMethod from '../../../method/method.shader.js'
+import ShaderMethod from '../../../method/method.shader.js'
 
 const name = 'visualizerParticle'
 
 const getShaderName = () => {
     const vertex = `
-        #include<instancesDeclaration>
-
         attribute vec3 position;
         attribute vec2 uv;
         attribute float audio;
 
-        // uniform mat4 worldViewProjection;
-        uniform mat4 viewProjection;
-        uniform vec3 cameraPosition;
+        uniform mat4 worldViewProjection;
+        uniform float uBoost;
+        uniform float uTime;
+        uniform float uAudio;
 
         varying vec2 vUv;
 
-        void main(){
-            #include<instancesVertex>
+        ${ShaderMethod.snoise4D()}
 
-            gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
+        void main(){
+            vec3 nPosition = position;
+
+            float x = snoise4D(vec4(position * 0.1 * 0.25, uTime * 0.001 + uAudio)) * uBoost * uAudio;
+            float y = snoise4D(vec4(position * 0.2 * 0.25, uTime * 0.001 + uAudio)) * uBoost * uAudio;
+            float z = snoise4D(vec4(position * 0.3 * 0.25, uTime * 0.001 + uAudio)) * uBoost * uAudio;
+
+            nPosition += vec3(x, y, z);
+
+            gl_Position = worldViewProjection * vec4(nPosition, 1.0);
+            gl_PointSize = 2.0;
 
             vUv = uv;
         }

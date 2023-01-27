@@ -24,11 +24,13 @@ export default class{
         this.audioBoost = audioBoost
         this.rtt =  rtt
 
+        this.boost = 15
         this.iter = 2
         this.size = 0.125
         this.tessellation = 4
-        this.audioData = null
+        this.audioDataAvg = null
         this.direction = [1, -1]
+        this.play = false
 
         this.init()
     }
@@ -45,40 +47,35 @@ export default class{
         const {scene, engine, size, tessellation, count, iter, radius} = this
 
         const material = this.createMaterial()
-        // const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', {diameter: radius * 2, segments: 64}, scene)
-        // const position = [...sphere.getVerticesData('position')]
-        // this.scene.removeMesh(sphere)
-        // sphere.dispose()
-        const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 60, 60, 60).getAttribute('position').array
-
+        const position = new BoxGeometry(radius * 1.5, radius * 1.5, radius * 1.5, 100, 100, 100).getAttribute('position').array
         const len = position.length / 3
-        const matrices = new Float32Array(len * 16)
 
-        this.plane = new Box({
-            geometryOpt: {
-                size: size * 2,
-                sideOrientation: BABYLON.Mesh.FRONTSIDE
-            },
-            scene,
-            engine,
-        })
-        this.plane.setMaterial(material)
+        this.points = new BABYLON.PointsCloudSystem('pcs', 1, scene)
 
-        // this.scene.removeMesh(this.plang.get())
-        this.rtt.renderList.push(this.plane.get())
+        this.points.addPoints(len)
 
-        for(let i = 0; i < len; i++){
-            const idx = i * 3
+        this.points.initParticles = () => {
+            for(let i = 0; i < len; i++){
+                const idx = i * 3
 
-            const x = position[idx + 0]
-            const y = position[idx + 1]
-            const z = position[idx + 2]
+                const particle = this.points.particles[i]
 
-            const matrix = BABYLON.Matrix.Translation(x, y, z)
-            matrix.copyToArray(matrices, 16 * i)
+                const x = position[idx + 0]
+                const y = position[idx + 1]
+                const z = position[idx + 2]
+
+                particle.position.x = x 
+                particle.position.y = y 
+                particle.position.z = z 
+            }
         }
 
-        this.plane.get().thinInstanceSetBuffer('matrix', matrices, 16)
+        this.points.buildMeshAsync().then(() => {
+            this.points.initParticles()
+            this.points.setParticles()
+            this.points.mesh.material = material
+            this.points.mesh.material.pointsCloud = true
+        })
     }
     createMaterial(){
         const shaderName = GetShaderName()
@@ -90,14 +87,14 @@ export default class{
             },
             {
                 attributes: ['position', 'normal', 'uv'],
-                uniforms: ['world', 'worldView', "worldViewProjection", 'view', 'projection', 'viewProjection', 'uColor', 'cameraPosition'],
+                uniforms: ['world', 'worldView', "worldViewProjection", 'view', 'projection', 'viewProjection', 'uColor', 'uAudio', 'uTime', 'uBoost'],
                 needAlphaBlending: true,
                 needAlphaTesting: true,
             }
         )
 
         material.setColor3('uColor', this.color)
-        material.setVector3('cameraPosition', this.camera.position)
+        material.setFloat('uBoost', this.boost)
 
         // const material = new BABYLON.StandardMaterial('material', this.scene)
         // material.emissiveColor = this.color
@@ -109,18 +106,23 @@ export default class{
     
 
     // animate
-    animate(audioData){
-        this.audioData = audioData
+    animate(audioDataAvg){
+        this.audioDataAvg = audioDataAvg
 
         this.render()
     }
     render(){
-        const {radius, count, iter, audioBoost, audioData} = this
+        const {radius, count, iter, audioDataAvg} = this
 
-        this.plane.get().rotation.x += 0.01
-        this.plane.get().rotation.y += 0.01
-        // this.plane.get().rotation.z += 0.01
+        if(audioDataAvg === null) return
 
-        if(!audioData) return
+        const material = this.points.mesh.material
+        const time = window.performance.now()
+
+        this.points.mesh.rotation.x += 0.01
+        this.points.mesh.rotation.y += 0.01
+
+        material.setFloat('uTime', time)
+        material.setFloat('uAudio', audioDataAvg)
     }
 }
